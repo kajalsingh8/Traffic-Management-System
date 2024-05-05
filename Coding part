@@ -1,0 +1,157 @@
+// C++ code
+
+#include <Adafruit_LiquidCrystal.h>
+Adafruit_LiquidCrystal lcd_1(0);
+ int cm=0;
+//for first shift rgister
+int serPin = 9;//serial
+int serClockPin = 11;
+int latchClockPin = 10;
+// for second shift regiter
+int serPin2 = 6;//serial 
+int serClockPin2 = 8;
+int latchClockPin2 = 7;
+
+ 
+//function to deal with Ultrasonic Distance sensor
+//and return its value
+long readUltrasonicDistance(int triggerPin, int echoPin)
+{
+  pinMode(triggerPin, OUTPUT);  
+  digitalWrite(triggerPin, LOW);
+  delayMicroseconds(2);
+  
+  digitalWrite(triggerPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(triggerPin, LOW);
+  pinMode(echoPin, INPUT);
+  // Reads the echo pin, and returns the sound wave travel time in microseconds
+  return pulseIn(echoPin, HIGH);
+}
+
+
+//function to handl displaying time on lcd
+void displayTime(){
+
+ for(int i=60;i>0;i--){
+    
+  lcd_1.setCursor(8, 10);
+  lcd_1.print(i);
+  lcd_1.setBacklight(1);
+  delay(500); // Wait for 500 millisecond(s)
+ lcd_1.setBacklight(0);
+  delay(500); // Wait for 500 millisecond(s)
+       }
+   lcd_1.setCursor(8, 10);
+  lcd_1.print("00");
+
+}
+ //function to handl the led if direction is busy
+void checkDistance(){
+   cm = 0.01723 * readUltrasonicDistance(4,4);
+  while(cm < 100){
+     cm = 0.01723 * readUltrasonicDistance(4,4);
+    delay(5);
+     
+  }
+}
+
+
+void setup()
+{
+ // Serial.begin(9600);
+  //for first shift
+  pinMode(serPin, OUTPUT);
+  pinMode(serClockPin, OUTPUT);
+  pinMode(latchClockPin, OUTPUT);
+  //for second shift
+  pinMode(serPin2, OUTPUT);
+  pinMode(serClockPin2, OUTPUT);
+  pinMode(latchClockPin2, OUTPUT);
+ 
+  //set all red leds high
+    //for first shift
+   digitalWrite(latchClockPin,LOW);  
+   shiftOut(serPin,serClockPin,MSBFIRST,145);
+   digitalWrite(latchClockPin,HIGH);
+  //for second shift
+    digitalWrite(latchClockPin2,LOW);
+    shiftOut(serPin2,serClockPin2,MSBFIRST,145);
+    digitalWrite(latchClockPin2,HIGH);
+
+  //set lcd 
+  lcd_1.begin(16, 2);
+  lcd_1.print("");  
+}
+
+void loop()
+{
+   
+  //cal previus  function for each direction
+   //first green
+  
+    checkDistance();//if it busy
+    digitalWrite(latchClockPin,LOW);//set latch off    
+    shiftOut(serPin,serClockPin,MSBFIRST,146);//shift from first with value 146
+    digitalWrite(latchClockPin,HIGH);//set latch on
+    displayTime();//display witting time 
+ 
+  //red
+   digitalWrite(latchClockPin,LOW);  //set latch off
+    shiftOut(serPin,serClockPin,MSBFIRST,145);//shift with 145 to make the red ld on
+    digitalWrite(latchClockPin,HIGH);//set latch on
+   //
+  //and so one for the other ones
+  //second green 
+  checkDistance();
+    digitalWrite(latchClockPin,LOW);   
+    shiftOut(serPin,serClockPin,MSBFIRST,161);
+    digitalWrite(latchClockPin,HIGH);
+     displayTime();
+
+  //red
+   digitalWrite(latchClockPin,LOW);  
+   shiftOut(serPin,serClockPin,MSBFIRST,145);
+   digitalWrite(latchClockPin,HIGH);
+  
+  //third green
+  checkDistance();
+   digitalWrite(latchClockPin2,LOW);    
+    shiftOut(serPin2,serClockPin2,MSBFIRST,146);
+    digitalWrite(latchClockPin2,HIGH);
+     displayTime();
+  
+  //red
+   digitalWrite(latchClockPin2,LOW);
+   shiftOut(serPin2,serClockPin2,MSBFIRST,145);
+   digitalWrite(latchClockPin2,HIGH);
+  
+  //fourth green
+  checkDistance();
+    digitalWrite(latchClockPin2,LOW);   
+    shiftOut(serPin2,serClockPin2,MSBFIRST,161);
+    digitalWrite(latchClockPin2,HIGH);
+        displayTime();
+  //red
+   digitalWrite(latchClockPin2,LOW);
+   shiftOut(serPin2,serClockPin2,MSBFIRST,145);
+   digitalWrite(latchClockPin2,HIGH);
+
+  
+ /* for(int t=0;t<=6;t++){
+  //  digitalWrite(sclear,HIGH);
+   // digitalWrite(sclear,LOW);
+    digitalWrite(latchClockPin,LOW);
+    shiftOut(serPin,serClockPin,MSBFIRST,6);
+    digitalWrite(latchClockPin,HIGH);
+    delay(500);}*/
+/*  for(int i=60;i>0;i--){
+    
+  lcd_1.setCursor(8, 10);
+  lcd_1.print(i);
+  lcd_1.setBacklight(1);
+  delay(100); // Wait for 500 millisecond(s)
+ lcd_1.setBacklight(0);
+  delay(100); // Wait for 500 millisecond(s)
+      i-= 1/2;}*/
+}
